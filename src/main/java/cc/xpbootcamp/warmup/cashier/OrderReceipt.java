@@ -1,5 +1,7 @@
 package cc.xpbootcamp.warmup.cashier;
 
+import java.util.Calendar;
+
 /**
  * OrderReceipt prints the details of order including customer name, address, description, quantity,
  * price and amount. It also calculates the sales tax @ 10% and prints as part
@@ -15,48 +17,60 @@ package cc.xpbootcamp.warmup.cashier;
 public class OrderReceipt {
 
     public static final double TAX_RATE = .10;
+    public static final int DISCOUNT_DAY = 4;
+    public static final double DISCOUNT_RATE = .98;
+
     private Order order;
 
     public OrderReceipt(Order order) {
         this.order = order;
     }
 
+    public boolean shouldDiscount() {
+        Calendar c = Calendar.getInstance();
+        c.setTime(order.getDate());
+        if(c.get(Calendar.DAY_OF_WEEK) == DISCOUNT_DAY)
+            return true;
+        return false;
+    }
+
     public String printReceipt() {
         StringBuilder output = new StringBuilder();
 
         // print headers
-        output.append("======Printing Orders======\n");
-
-        // print date, bill no, customer name
-//        output.append("Date - " + order.getDate();
-        output.append(order.getCustomerName());
-        output.append(order.getCustomerAddress());
+        output.append("======老王超市 值得信赖======\n");
+        output.append("Date - " + order.getFormattedDate() + "\n");
+//        output.append(order.getCustomerName());
+ //       output.append(order.getCustomerAddress());
 //        output.append(order.getCustomerLoyaltyNumber());
-        appendTax(output);
+
 
         for (LineItem lineItem : order.getLineItems()) {
             appendBasicInfo(output, lineItem);
         }
+        output.append("--------------------------\n");
+        appendPrice(output);
         return output.toString();
     }
 
-    private void appendTax(StringBuilder output) {
+    private void appendPrice(StringBuilder output) {
         // prints lineItems
-        double totSalesTx = 0d;
-        double tot = 0d;
+        double totSalesTax = 0d;
+        double totalAmount = 0d;
         for (LineItem lineItem : order.getLineItems()) {
-            // calculate sales tax @ rate of 10%
             double salesTax = lineItem.totalAmount() * TAX_RATE;
-            totSalesTx += salesTax;
-            // calculate total amount of lineItem = price * quantity + 10 % sales tax
-            tot += lineItem.totalAmount() + salesTax;
+            totSalesTax += salesTax;
+            totalAmount += lineItem.totalAmount() + salesTax;
         }
 
-        // prints the state tax
-        output.append("Sales Tax").append('\t').append(totSalesTx);
-
-        // print total amount
-        output.append("Total Amount").append('\t').append(tot);
+        output.append("Sales Tax").append('\t').append(totSalesTax).append('\n');
+        if (shouldDiscount()) {
+            double actualAmount = totalAmount * DISCOUNT_RATE;
+            output.append("Discount").append('\t').append(totalAmount - actualAmount).append('\n');
+            output.append("Total Amount").append('\t').append(actualAmount);
+        } else {
+            output.append("Total Amount").append('\t').append(totalAmount);
+        }
     }
 
     private void appendBasicInfo(StringBuilder output, LineItem lineItem) {
